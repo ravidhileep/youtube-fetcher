@@ -11,10 +11,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Enable CORS for dashboard HTML access
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, set to your frontend domain
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
