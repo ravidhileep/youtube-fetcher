@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Video Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      padding: 0;
+      margin: 0;
+      background: #f7fafc;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 40px auto 0 auto;
+      padding: 24px 20px 40px 20px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(60,60,140,0.10);
+      animation: fadein 1.2s;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(24px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+      font-size: 2.1rem;
+      color: #232354;
+    }
+    .controls {
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .controls input, .controls select, .controls button {
+      font-size: 1rem;
+      padding: 7px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      transition: box-shadow 0.2s;
+    }
+    .controls input:focus, .controls select:focus {
+      box-shadow: 0 0 0 2px #dbeafe;
+    }
+    .controls button {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      font-weight: 500;
+    }
+    .controls button:hover {
+      background: #4f46e5;
+      box-shadow: 0 2px 8px #6366f133;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      margin-top: 10px;
+      box-shadow: 0 2px 16px rgba(30,20,100,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 14px 10px;
+      border-bottom: 1px solid #f0f1fa;
+      text-align: left;
+      vertical-align: middle;
+      transition: background 0.2s;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+      font-size: 1.01rem;
+      color: #53537c;
+    }
+    tr {
+      transition: background 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    tr:hover td {
+      background: #f5f3ff;
+    }
+    img {
+      border-radius: 7px;
+      width: 148px;
+      height: 88px;
+      box-shadow: 0 2px 8px #6366f122;
+      transition: transform 0.2s;
+    }
+    tr:hover img {
+      transform: scale(1.05) rotate(-1deg);
+    }
+    .pagination {
+      margin: 15px 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pagination button {
+      background: #e0e7ff;
+      color: #3730a3;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .pagination button:hover {
+      background: #c7d2fe;
+    }
+    .pagination span {
+      font-size: 1rem;
+      color: #444;
+    }
+    @media (max-width: 700px) {
+      .container { padding: 10px 2vw; }
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      tr {
+        margin-bottom: 24px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        display: none;
+      }
+      td {
+        padding: 10px 8px;
+        border: none;
+        font-size: 1.1rem;
+      }
+      td:first-child {
+        margin-bottom: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>YouTube Video Dashboard</h1>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search Title">
+      <input type="text" id="channel" placeholder="Channel Name">
+      <select id="sort">
+        <option value="published_at">Date</option>
+        <option value="title">Title</option>
+        <option value="channel_title">Channel</option>
+      </select>
+      <select id="order">
+        <option value="desc">Desc</option>
+        <option value="asc">Asc</option>
+      </select>
+      <select id="size">
+        <option value="5">5 per page</option>
+        <option value="10" selected>10 per page</option>
+        <option value="20">20 per page</option>
+        <option value="50">50 per page</option>
+      </select>
+      <button onclick="loadVideos(1)">Apply</button>
+    </div>
+    <div class="pagination">
+      <button onclick="prevPage()">&lt; Prev</button>
+      <span id="page-info"></span>
+      <button onclick="nextPage()">Next &gt;</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Thumbnail</th>
+          <th>Title</th>
+          <th>Channel</th>
+          <th>Published</th>
+        </tr>
+      </thead>
+      <tbody id="videos-table">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    let page = 1;
+    function getFilters() {
+      return {
+        search: document.getElementById('search').value,
+        channel: document.getElementById('channel').value,
+        sort: document.getElementById('sort').value,
+        order: document.getElementById('order').value,
+        size: document.getElementById('size').value,
+      };
+    }
+
+    function loadVideos(newPage) {
+      if (newPage) page = newPage;
+      const filters = getFilters();
+      let url = `http://127.0.0.1:9000/videos?page=${page}&size=${filters.size}`;
+      if (filters.search) url += `&search=${encodeURIComponent(filters.search)}`;
+      if (filters.channel) url += `&channel=${encodeURIComponent(filters.channel)}`;
+      if (filters.sort) url += `&sort=${filters.sort}`;
+      if (filters.order) url += `&order=${filters.order}`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('videos-table');
+          table.innerHTML = "";
+          if (data.length === 0) {
+            table.innerHTML = `<tr><td colspan="4">No videos found.</td></tr>`;
+          } else {
+            data.forEach(v => {
+              const row = document.createElement('tr');
+              row.onclick = () => window.open(`https://www.youtube.com/watch?v=${v.video_id}`, "_blank");
+              row.innerHTML = `
+                <td><img src="${v.thumbnail_url}" alt="Thumbnail"></td>
+                <td>${v.title}</td>
+                <td>${v.channel_title}</td>
+                <td>${new Date(v.published_at).toLocaleString()}</td>
+              `;
+              table.appendChild(row);
+            });
+          }
+          document.getElementById('page-info').textContent = `Page ${page}`;
+        });
+    }
+    function prevPage() {
+      if (page > 1) {
+        page--;
+        loadVideos();
+      }
+    }
+    function nextPage() {
+      page++;
+      loadVideos();
+    }
+    // Initial load
+    loadVideos();
+  </script>
+</body>
+</html>
