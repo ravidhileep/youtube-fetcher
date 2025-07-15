@@ -56,5 +56,3 @@ fastapi-youtube-search/
   Adjust `maxResults` and use `nextPageToken` from the YouTube API response.
 
 ---
-
-Happy hacking! 🎉
